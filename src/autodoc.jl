@@ -241,7 +241,7 @@ function formatcontent(bodyparams::Vector) :: OrderedDict
     end
 
     # If we either have no extract specified or `Body{String}` then fall back to accepting all content
-    if(isempty(ordered_content) || get(body_types, "Body", "string"))
+    if isempty(ordered_content) || lowercase(get(body_types, "Body", "string")) == "string"
         for (key, value) in content
             if !haskey(ordered_content, key)
                 ordered_content[key] = value
@@ -284,10 +284,7 @@ function registerschema(
             formatparam!(params, p, location)
         end
     end
-
-    ##### Set the schema for the body parameters #####
-    content = formatcontent(bodyparams)
-
+    
     # lookup if this route has any registered tags
     if haskey(docs.taggedroutes, path) && httpmethod in docs.taggedroutes[path].httpmethods
         tags = docs.taggedroutes[path].tags
@@ -343,8 +340,10 @@ function registerschema(
         "responses" => responses
     )
 
-    # Add a request body to the route if it's a POST, PUT, or PATCH request
+    # Set schema for body parameters if it's a POST, PUT, or PATCH request
     if httpmethod in ["POST", "PUT", "PATCH"] || !isempty(bodyparams)
+        content = formatcontent(bodyparams)
+
         route["requestBody"] = Dict(
             # if any body param is required, mark the entire body as required
             "required" => any(p -> isrequired(p), bodyparams),
