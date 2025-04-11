@@ -241,7 +241,7 @@ function formatcontent(bodyparams::Vector) :: OrderedDict
     end
 
     # If we either have no extract specified or `Body{String}` then fall back to accepting all content
-    if isempty(ordered_content) || lowercase(get(body_types, "Body", "string")) == "string"
+    if isempty(ordered_content) || lowercase(get(body_types, "Body", "")) == "string"
         for (key, value) in content
             if !haskey(ordered_content, key)
                 ordered_content[key] = value
