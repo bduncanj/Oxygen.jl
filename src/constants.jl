@@ -2,12 +2,15 @@ module Constants
 using HTTP
 using RelocatableFolders
 
+include("types.jl")
+using .Types:ResponseTypes
+
 export PACKAGE_DIR, DATA_PATH,
     GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, CONNECT, TRACE, 
     HTTP_METHODS,
     WEBSOCKET, STREAM,
     SPECIAL_METHODS, METHOD_ALIASES, TYPE_ALIASES,
-    SWAGGER_VERSION, REDOC_VERSION
+    SWAGGER_VERSION, REDOC_VERSION, CONTENT_TYPES
 
 # Generate a reliable path to our package directory
 const PACKAGE_DIR :: String = @path @__DIR__
@@ -48,5 +51,16 @@ const TYPE_ALIASES :: Dict{String, Type} = Dict(
 
 const SWAGGER_VERSION   :: String = "swagger@5.7.2"
 const REDOC_VERSION     :: String = "redoc@2.1.2"
+
+# Mapping of ResponseType used in a ResponseWrapper to the MIME type 
+const CONTENT_TYPES :: Dict{ResponseTypes.ResponseType, String} = Dict(
+    ResponseTypes.Html => "text/html; charset=utf-8",
+    ResponseTypes.Text => "text/plain; charset=utf-8",
+    ResponseTypes.Json => "application/json; charset=utf-8",
+    ResponseTypes.Xml => "application/xml; charset=utf-8",
+    ResponseTypes.Js => "application/javascript; charset=utf-8",
+    ResponseTypes.Css => "text/css; charset=utf-8",
+    ResponseTypes.Binary => "application/octet-stream"
+)
 
 end

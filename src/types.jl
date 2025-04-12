@@ -9,12 +9,12 @@ using JSON3
 using Dates
 using Base: @kwdef
 using DataStructures: CircularDeque
-using ..Util
 
 export Server, History, HTTPTransaction, TaggedRoute, Nullable, Context,
     ActiveTask, RegisteredTask, TaskDefinition,
     ActiveCron, RegisteredCron, CronDefinition,
-    Param, isrequired, LazyRequest, headers, pathparams, queryvars, jsonbody, formbody, textbody
+    Param, isrequired, LazyRequest, headers, pathparams, queryvars, jsonbody, 
+    formbody, textbody, ResponseWrapper, ResponseTypes
 
 const Nullable{T} = Union{T, Nothing}
 
@@ -146,6 +146,18 @@ function textbody(req::LazyRequest) :: Nullable{String}
         req.textbody[] = text(req.request)
     end
     return req.textbody[] 
+end
+
+module ResponseTypes
+    export ResponseType, Html, Text, Json, Xml, Js, Css, Binary
+    @enum ResponseType Html Text Json Xml Js Css Binary
+end
+
+struct ResponseWrapper
+    content_type::ResponseTypes.ResponseType
+    content::Any
+    status::Int16
+    headers::HTTP.Headers
 end
 
 end
