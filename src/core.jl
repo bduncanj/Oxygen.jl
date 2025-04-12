@@ -14,9 +14,9 @@ import Base.Threads: lock, nthreads
 import ..WAS_LOADED_AFTER_REVISE
 
 include("errors.jl");       @reexport using .Errors
-include("util.jl");         @reexport using .Util
 include("types.jl");        @reexport using .Types 
 include("constants.jl");    @reexport using .Constants
+include("util.jl");         @reexport using .Util
 include("context.jl");      @reexport using .AppContext
 include("handlers.jl");     @reexport using .Handlers
 include("middleware.jl");   @reexport using .Middleware
