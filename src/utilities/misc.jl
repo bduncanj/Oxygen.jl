@@ -3,6 +3,8 @@ using JSON3
 using Dates
 
 using ..Errors: ValidationError
+using ..Constants: CONTENT_TYPES
+using ..Types: ResponseWrapper, ResponseTypes
 
 export countargs, recursive_merge, parseparam, 
     redirect, handlerequest,
@@ -138,6 +140,27 @@ end
 """
     Response Formatter functions
 """
+
+function format_response!(req::HTTP.Request, wrapper::ResponseWrapper)
+    declared_type = wrapper.content_type
+    inferred_type = typeof(wrapper.content)
+
+    response = HTTP.Response(wrapper.status, wrapper.headers)
+
+    if declared_type == ResponseTypes.Json 
+        # No conversion is done on the content since it's already in binary format.
+        if inferred_type == Vector{UInt8}
+            response.body = wrapper.content
+        else
+            response.body = JSON3.write(wrapper.content)
+        end
+    else
+        response.body = wrapper.content
+    end
+    HTTP.setheader(response, "Content-Type" => CONTENT_TYPES[wrapper.content_type])
+    HTTP.setheader(response, "Content-Length" => string(sizeof(response.body)))
+    req.response = response
+end
 
 function format_response!(req::HTTP.Request, resp::HTTP.Response)
     # Return Response's as is without any modifications

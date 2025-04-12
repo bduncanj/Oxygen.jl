@@ -1,7 +1,9 @@
-
 using HTTP
 using JSON3
 using MIMEs
+
+include("../types.jl")
+using ..Types: ResponseTypes, ResponseWrapper
 
 export html, text, json, xml, js, css, binary, file
 
@@ -10,24 +12,17 @@ export html, text, json, xml, js, css, binary, file
 
 A convenience function to return a String that should be interpreted as HTML
 """
-function html(content::String; status = 200, headers = []) :: HTTP.Response
-    response = HTTP.Response(status, headers, body = content)
-    HTTP.setheader(response, "Content-Type" => "text/html; charset=utf-8")
-    HTTP.setheader(response, "Content-Length" => string(sizeof(content)))
-    return response
+function html(content::String; status = 200, headers = []) :: ResponseWrapper
+    return ResponseWrapper(ResponseTypes.Html, content,status, headers)
 end
-
 
 """
     text(content::String; status::Int, headers::Vector{Pair}) :: HTTP.Response
 
 A convenience function to return a String that should be interpreted as plain text
 """
-function text(content::String; status = 200, headers = []) :: HTTP.Response
-    response = HTTP.Response(status, headers, body = content)
-    HTTP.setheader(response, "Content-Type" => "text/plain; charset=utf-8")
-    HTTP.setheader(response, "Content-Length" => string(sizeof(content)))
-    return response
+function text(content::String; status = 200, headers = []) :: ResponseWrapper
+    return ResponseWrapper(ResponseTypes.Text, content,status, headers)
 end
 
 """
@@ -35,12 +30,8 @@ end
 
 A convenience function to return a String that should be interpreted as JSON
 """
-function json(content::Any; status = 200, headers = []) :: HTTP.Response
-    body = JSON3.write(content)
-    response = HTTP.Response(status, headers, body = body)
-    HTTP.setheader(response, "Content-Type" => "application/json; charset=utf-8")
-    HTTP.setheader(response, "Content-Length" => string(sizeof(body)))
-    return response
+function json(content::Any; status = 200, headers = []) :: ResponseWrapper
+    return ResponseWrapper(ResponseTypes.Json, content,status, headers)
 end
 
 """
@@ -49,11 +40,8 @@ end
 A helper function that can be passed binary data that should be interpreted as JSON. 
 No conversion is done on the content since it's already in binary format.
 """
-function json(content::Vector{UInt8}; status = 200, headers = []) :: HTTP.Response
-    response = HTTP.Response(status, headers, body = content)
-    HTTP.setheader(response, "Content-Type" => "application/json; charset=utf-8")
-    HTTP.setheader(response, "Content-Length" => string(sizeof(content)))
-    return response
+function json(content::Vector{UInt8}; status = 200, headers = []) :: ResponseWrapper
+    return ResponseWrapper(ResponseTypes.Json, content,status, headers)
 end
 
 
@@ -62,11 +50,8 @@ end
 
 A convenience function to return a String that should be interpreted as XML
 """
-function xml(content::String; status = 200, headers = []) :: HTTP.Response
-    response = HTTP.Response(status, headers, body = content)
-    HTTP.setheader(response, "Content-Type" => "application/xml; charset=utf-8")
-    HTTP.setheader(response, "Content-Length" => string(sizeof(content)))
-    return response
+function xml(content::String; status = 200, headers = []) :: ResponseWrapper
+    return ResponseWrapper(ResponseTypes.Xml, content,status, headers)
 end
 
 """
@@ -74,11 +59,8 @@ end
 
 A convenience function to return a String that should be interpreted as JavaScript
 """
-function js(content::String; status = 200, headers = []) :: HTTP.Response
-    response = HTTP.Response(status, headers, body = content)
-    HTTP.setheader(response, "Content-Type" => "application/javascript; charset=utf-8")
-    HTTP.setheader(response, "Content-Length" => string(sizeof(content)))
-    return response
+function js(content::String; status = 200, headers = []) :: ResponseWrapper
+    return ResponseWrapper(ResponseTypes.Js, content,status, headers)
 end
 
 
@@ -87,11 +69,8 @@ end
 
 A convenience function to return a String that should be interpreted as CSS
 """
-function css(content::String; status = 200, headers = []) :: HTTP.Response
-    response = HTTP.Response(status, headers, body = content)
-    HTTP.setheader(response, "Content-Type" => "text/css; charset=utf-8")
-    HTTP.setheader(response, "Content-Length" => string(sizeof(content)))
-    return response
+function css(content::String; status = 200, headers = []) :: ResponseWrapper
+    return ResponseWrapper(ResponseTypes.Css, content,status, headers)
 end
 
 """
@@ -99,11 +78,8 @@ end
 
 A convenience function to return a Vector of UInt8 that should be interpreted as binary data
 """
-function binary(content::Vector{UInt8}; status = 200, headers = []) :: HTTP.Response
-    response = HTTP.Response(status, headers, body = content)
-    HTTP.setheader(response, "Content-Type" => "application/octet-stream")
-    HTTP.setheader(response, "Content-Length" => string(sizeof(content)))
-    return response
+function binary(content::Vector{UInt8}; status = 200, headers = []) :: ResponseWrapper
+    return ResponseWrapper(ResponseTypes.Binary, content,status, headers)
 end
 
 
