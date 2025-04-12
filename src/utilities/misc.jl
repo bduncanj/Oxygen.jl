@@ -3,7 +3,6 @@ using JSON3
 using Dates
 
 using ..Errors: ValidationError
-using ..Constants: CONTENT_TYPES
 using ..Types: ResponseWrapper, ResponseTypes
 
 export countargs, recursive_merge, parseparam, 
@@ -136,6 +135,18 @@ function parseparam(type::Union, str::String; escape=true)
     return result
 end
 
+# Mapping of ResponseType used in a ResponseWrapper to the MIME type 
+# These reside here instead of `constants.jl` so that the ENUM
+# used as the key is not namespaced with `Constants.` (which prevents lookup) 
+const CONTENT_TYPES :: Dict{ResponseTypes.ResponseType, String} = Dict(
+    ResponseTypes.Html => "text/html; charset=utf-8",
+    ResponseTypes.Text => "text/plain; charset=utf-8",
+    ResponseTypes.Json => "application/json; charset=utf-8",
+    ResponseTypes.Xml => "application/xml; charset=utf-8",
+    ResponseTypes.Js => "application/javascript; charset=utf-8",
+    ResponseTypes.Css => "text/css; charset=utf-8",
+    ResponseTypes.Binary => "application/octet-stream"
+)
 
 """
     Response Formatter functions
