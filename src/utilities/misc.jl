@@ -135,42 +135,14 @@ function parseparam(type::Union, str::String; escape=true)
     return result
 end
 
-# Mapping of ResponseType used in a ResponseWrapper to the MIME type 
-# These reside here instead of `constants.jl` so that the ENUM
-# used as the key is not namespaced with `Constants.` (which prevents lookup) 
-const CONTENT_TYPES :: Dict{ResponseTypes.ResponseType, String} = Dict(
-    ResponseTypes.Html => "text/html; charset=utf-8",
-    ResponseTypes.Text => "text/plain; charset=utf-8",
-    ResponseTypes.Json => "application/json; charset=utf-8",
-    ResponseTypes.Xml => "application/xml; charset=utf-8",
-    ResponseTypes.Js => "application/javascript; charset=utf-8",
-    ResponseTypes.Css => "text/css; charset=utf-8",
-    ResponseTypes.Binary => "application/octet-stream"
-)
+
 
 """
     Response Formatter functions
 """
 
 function format_response!(req::HTTP.Request, wrapper::ResponseWrapper)
-    declared_type = wrapper.content_type
-    inferred_type = typeof(wrapper.content)
-
-    response = HTTP.Response(wrapper.status, wrapper.headers)
-
-    if declared_type == ResponseTypes.Json 
-        # No conversion is done on the content since it's already in binary format.
-        if inferred_type == Vector{UInt8}
-            response.body = wrapper.content
-        else
-            response.body = JSON3.write(wrapper.content)
-        end
-    else
-        response.body = wrapper.content
-    end
-    HTTP.setheader(response, "Content-Type" => CONTENT_TYPES[wrapper.content_type])
-    HTTP.setheader(response, "Content-Length" => string(sizeof(response.body)))
-    req.response = response
+    req.response = wrapper.response
 end
 
 function format_response!(req::HTTP.Request, resp::HTTP.Response)

@@ -7,6 +7,38 @@ using ..Types: ResponseTypes, ResponseWrapper
 
 export html, text, json, xml, js, css, binary, file
 
+# Mapping of ResponseType used in a ResponseWrapper to the MIME type 
+# These reside here instead of `constants.jl` so that the ENUM
+# used as the key is not namespaced with `Constants.` (which prevents lookup) 
+const CONTENT_TYPES :: Dict{ResponseTypes.ResponseType, String} = Dict(
+    ResponseTypes.Html => "text/html; charset=utf-8",
+    ResponseTypes.Text => "text/plain; charset=utf-8",
+    ResponseTypes.Json => "application/json; charset=utf-8",
+    ResponseTypes.Xml => "application/xml; charset=utf-8",
+    ResponseTypes.Js => "application/javascript; charset=utf-8",
+    ResponseTypes.Css => "text/css; charset=utf-8",
+    ResponseTypes.Binary => "application/octet-stream"
+)
+
+function ResponseWrapper(type,content,status, headers)
+    response = HTTP.Response(status, headers)
+    inferred_type = typeof(content)
+
+    if type == ResponseTypes.Json 
+        # No conversion is done on the content since it's already in binary format.
+        if inferred_type <: Vector{UInt8}
+            response.body = content
+        else
+            response.body = JSON3.write(content)
+        end
+    else
+        response.body = content
+    end
+    HTTP.setheader(response, "Content-Type" => CONTENT_TYPES[type])
+    HTTP.setheader(response, "Content-Length" => string(sizeof(response.body)))
+    return ResponseWrapper{typeof(content)}(response)
+end
+
 """
     html(content::String; status::Int, headers::Vector{Pair}) :: HTTP.Response
 
@@ -31,7 +63,7 @@ end
 A convenience function to return a String that should be interpreted as JSON
 """
 function json(content::Any; status = 200, headers = []) :: ResponseWrapper
-    return ResponseWrapper{typeof(content)}(ResponseTypes.Json, content,status, headers)
+    return ResponseWrapper(ResponseTypes.Json, content,status, headers)
 end
 
 """

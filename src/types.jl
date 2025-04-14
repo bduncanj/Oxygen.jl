@@ -154,13 +154,7 @@ module ResponseTypes
 end
 
 struct ResponseWrapper{T}
-    content_type::ResponseTypes.ResponseType
-    content::T
-    status::Int16
-    headers::HTTP.Headers
+    response::HTTP.Messages.Response
 end
-
-ResponseWrapper(type,content,status,headers) = ResponseWrapper{Any}(type,content,status, headers)
-
 
 end
