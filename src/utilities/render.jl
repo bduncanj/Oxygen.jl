@@ -31,7 +31,7 @@ end
 A convenience function to return a String that should be interpreted as JSON
 """
 function json(content::Any; status = 200, headers = []) :: ResponseWrapper
-    return ResponseWrapper(ResponseTypes.Json, content,status, headers)
+    return ResponseWrapper{typeof(content)}(ResponseTypes.Json, content,status, headers)
 end
 
 """

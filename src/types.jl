@@ -153,11 +153,14 @@ module ResponseTypes
     @enum ResponseType Html Text Json Xml Js Css Binary
 end
 
-struct ResponseWrapper
+struct ResponseWrapper{T}
     content_type::ResponseTypes.ResponseType
-    content::Any
+    content::T
     status::Int16
     headers::HTTP.Headers
 end
+
+ResponseWrapper(type,content,status,headers) = ResponseWrapper{Any}(type,content,status, headers)
+
 
 end
