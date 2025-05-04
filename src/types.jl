@@ -14,7 +14,7 @@ export Server, History, HTTPTransaction, TaggedRoute, Nullable, Context,
     ActiveTask, RegisteredTask, TaskDefinition,
     ActiveCron, RegisteredCron, CronDefinition,
     Param, isrequired, LazyRequest, headers, pathparams, queryvars, jsonbody, 
-    formbody, textbody, ResponseWrapper, ResponseTypes
+    formbody, textbody, ResponseWrapper
 
 const Nullable{T} = Union{T, Nothing}
 
@@ -146,11 +146,6 @@ function textbody(req::LazyRequest) :: Nullable{String}
         req.textbody[] = text(req.request)
     end
     return req.textbody[] 
-end
-
-module ResponseTypes
-    export ResponseType, Html, Text, Json, Xml, Js, Css, Binary
-    @enum ResponseType Html Text Json Xml Js Css Binary
 end
 
 struct ResponseWrapper{T}

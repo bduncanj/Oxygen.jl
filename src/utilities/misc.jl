@@ -3,7 +3,7 @@ using JSON3
 using Dates
 
 using ..Errors: ValidationError
-using ..Types: ResponseWrapper, ResponseTypes
+using ..Types: ResponseWrapper
 
 export countargs, recursive_merge, parseparam, 
     redirect, handlerequest,

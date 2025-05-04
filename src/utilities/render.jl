@@ -2,26 +2,30 @@ using HTTP
 using JSON3
 using MIMEs
 
-include("../types.jl")
-using ..Types: ResponseTypes, ResponseWrapper
+using ..Types: ResponseWrapper
 
 export html, text, json, xml, js, css, binary, file
+
+@enum ResponseType Html Text Json Xml Js Css Binary
 
 # Mapping of ResponseType used in a ResponseWrapper to the MIME type 
 # These reside here instead of `constants.jl` so that the ENUM
 # used as the key is not namespaced with `Constants.` (which prevents lookup) 
-const CONTENT_TYPES :: Dict{ResponseTypes.ResponseType, String} = Dict(
-    ResponseTypes.Html => "text/html; charset=utf-8",
-    ResponseTypes.Text => "text/plain; charset=utf-8",
-    ResponseTypes.Json => "application/json; charset=utf-8",
-    ResponseTypes.Xml => "application/xml; charset=utf-8",
-    ResponseTypes.Js => "application/javascript; charset=utf-8",
-    ResponseTypes.Css => "text/css; charset=utf-8",
-    ResponseTypes.Binary => "application/octet-stream"
+const CONTENT_TYPES::Dict{ResponseType,String} = Dict(
+    Html => "text/html; charset=utf-8",
+    Text => "text/plain; charset=utf-8",
+    Json => "application/json; charset=utf-8",
+    Xml => "application/xml; charset=utf-8",
+    Js => "application/javascript; charset=utf-8",
+    Css => "text/css; charset=utf-8",
+    Binary => "application/octet-stream"
 )
+"""
+    buildResponseWrapper(type,content,status, headers)
 
-ResponseWrapper(type,content,status, headers)
-begin
+Build a ResponseWrapper object by inserting appropriate MIME type and content length
+"""
+function buildResponseWrapper(type, content, status::Integer, headers)::ResponseWrapper
     response = HTTP.Response(status, headers)
     response.body = content
     HTTP.setheader(response, "Content-Type" => CONTENT_TYPES[type])
@@ -34,8 +38,8 @@ end
 
 A convenience function to return a String that should be interpreted as HTML
 """
-function html(content::String; status = 200, headers = []) :: ResponseWrapper
-    return ResponseWrapper(ResponseTypes.Html, content,status, headers)
+function html(content::String; status=200, headers=[])::ResponseWrapper
+    return buildResponseWrapper(Html, content, status, headers)
 end
 
 """
@@ -43,8 +47,8 @@ end
 
 A convenience function to return a String that should be interpreted as plain text
 """
-function text(content::String; status = 200, headers = []) :: ResponseWrapper
-    return ResponseWrapper(ResponseTypes.Text, content,status, headers)
+function text(content::String; status=200, headers=[])::ResponseWrapper
+    return buildResponseWrapper(Text, content, status, headers)
 end
 
 """
@@ -52,8 +56,8 @@ end
 
 A convenience function to return a String that should be interpreted as JSON
 """
-function json(content::Any; status = 200, headers = []) :: ResponseWrapper
-    return ResponseWrapper(ResponseTypes.Json, JSON3.write(content),status, headers)
+function json(content::Any; status=200, headers=[])::ResponseWrapper
+    return buildResponseWrapper(Json, JSON3.write(content), status, headers)
 end
 
 """
@@ -62,8 +66,8 @@ end
 A helper function that can be passed binary data that should be interpreted as JSON. 
 No conversion is done on the content since it's already in binary format.
 """
-function json(content::Vector{UInt8}; status = 200, headers = []) :: ResponseWrapper
-    return ResponseWrapper(ResponseTypes.Json, content,status, headers)
+function json(content::Vector{UInt8}; status=200, headers=[])::ResponseWrapper
+    return buildResponseWrapper(Json, content, status, headers)
 end
 
 
@@ -72,8 +76,8 @@ end
 
 A convenience function to return a String that should be interpreted as XML
 """
-function xml(content::String; status = 200, headers = []) :: ResponseWrapper
-    return ResponseWrapper(ResponseTypes.Xml, content,status, headers)
+function xml(content::String; status=200, headers=[])::ResponseWrapper
+    return buildResponseWrapper(Xml, content, status, headers)
 end
 
 """
@@ -81,8 +85,8 @@ end
 
 A convenience function to return a String that should be interpreted as JavaScript
 """
-function js(content::String; status = 200, headers = []) :: ResponseWrapper
-    return ResponseWrapper(ResponseTypes.Js, content,status, headers)
+function js(content::String; status=200, headers=[])::ResponseWrapper
+    return buildResponseWrapper(Js, content, status, headers)
 end
 
 
@@ -91,8 +95,8 @@ end
 
 A convenience function to return a String that should be interpreted as CSS
 """
-function css(content::String; status = 200, headers = []) :: ResponseWrapper
-    return ResponseWrapper(ResponseTypes.Css, content,status, headers)
+function css(content::String; status=200, headers=[])::ResponseWrapper
+    return buildResponseWrapper(Css, content, status, headers)
 end
 
 """
@@ -100,8 +104,8 @@ end
 
 A convenience function to return a Vector of UInt8 that should be interpreted as binary data
 """
-function binary(content::Vector{UInt8}; status = 200, headers = []) :: ResponseWrapper
-    return ResponseWrapper(ResponseTypes.Binary, content,status, headers)
+function binary(content::Vector{UInt8}; status=200, headers=[])::ResponseWrapper
+    return buildResponseWrapper(Binary, content, status, headers)
 end
 
 
@@ -120,12 +124,12 @@ an ArgumentError is thrown. The MIME type and the size of the file are added to 
 # Returns
 - A HTTP response.
 """
-function file(filepath::String; loadfile = nothing, status = 200, headers = []) :: HTTP.Response
-    has_loadfile    = !isnothing(loadfile)
-    content         = has_loadfile ? loadfile(filepath) : read(filepath, String)
-    content_length  = has_loadfile ? string(sizeof(content)) : string(filesize(filepath))
-    content_type    = mime_from_path(filepath, MIME"application/octet-stream"()) |> contenttype_from_mime
-    response = HTTP.Response(status, headers, body = content)
+function file(filepath::String; loadfile=nothing, status=200, headers=[])::HTTP.Response
+    has_loadfile = !isnothing(loadfile)
+    content = has_loadfile ? loadfile(filepath) : read(filepath, String)
+    content_length = has_loadfile ? string(sizeof(content)) : string(filesize(filepath))
+    content_type = mime_from_path(filepath, MIME"application/octet-stream"()) |> contenttype_from_mime
+    response = HTTP.Response(status, headers, body=content)
     HTTP.setheader(response, "Content-Type" => content_type)
     HTTP.setheader(response, "Content-Length" => content_length)
     return response
