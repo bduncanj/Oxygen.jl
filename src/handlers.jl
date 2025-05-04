@@ -19,6 +19,14 @@ Determine how to call each handler based on the arguments it takes.
 
 These branches are hardcoded because this invoker code is called on each and every 
 request. This is a performance critical path and should be as fast as possible.
+# Arguments
+ - `has_ctx_kwarg`: Route handler expects named `context` argument
+ - `has_req_kwarg`: Route handler expects named `request` argument
+ - `has_path_params`: Route has embedded path parameters (i.e. `/route/{arg1}`)) 
+ - `no_args`: True if handler accepts no argumnets
+ - `ctx`: Server context to pass into handler when called.
+# Returns
+ - A function accepts and calls user specified handler with the appropriate arguments (see this function's arguments)
 """
 function get_invoker_strategy(has_ctx_kwarg::Bool, has_req_kwarg::Bool, has_path_params::Bool, no_args::Bool, ctx::ServerContext)
     if no_args
@@ -83,9 +91,17 @@ end
 """
     select_handler(::Type{T})
 
-This base case, returns a handler for `HTTP.Request` objects.
+Create a route handle for base case where user defined handler expects `HTTP.Request` objects.
+# Arguments
+ - `has_ctx_kwarg`: Route handler expects named `context` argument
+ - `has_req_kwarg`: Route handler expects named `request` argument
+ - `has_path_params`: Route has embedded path parameters (i.e. `/route/{arg1}`)) 
+ - `no_args`: True if handler accepts no argumnets
+# Returns
+ - A function which is capable of registering user defined function and calling it with the correct arguments
 """
 function select_handler(::Type{T}, has_ctx_kwarg::Bool, has_req_kwarg::Bool, has_path_params::Bool, ctx::ServerContext; no_args=false) where {T}
+    # Obtain a function capable of invoking user specified handler with correct arguments
     invoker = get_invoker_strategy(has_ctx_kwarg, has_req_kwarg, has_path_params, no_args, ctx)
     function (req::HTTP.Request, func::Function; parameters::Nullable{Vector}=nothing)
         invoker(func, req, req, parameters)
@@ -117,9 +133,12 @@ function select_handler(::Type{HTTP.WebSockets.WebSocket}, has_ctx_kwarg::Bool, 
 end
 
 """
-first_arg_type(method::Method, httpmethod::String)
+    first_arg_type(method::Method, httpmethod::String)
 
-Determine the type of the first argument of a given method.
+Determine the first argument this route handler expects, defaulting
+to `HTTP.Request` if not specified (and not a specicial case, see below).
+
+# Details
 If the `httpmethod` is in `Constants.SPECIAL_METHODS`, the function will return the 
 corresponding type from `TYPE_ALIASES` if it exists, or `Type{HTTP.Request}` as a default.
 Otherwise, it will return the type of the second field of the method's signature.

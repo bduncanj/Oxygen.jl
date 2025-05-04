@@ -489,8 +489,13 @@ function parse_route(httpmethod::String, route::Union{String,Function})::String
 
     return route
 end
+"""
+    parse_func_params(route::String, func::Function)::NamedTuple
 
-function parse_func_params(route::String, func::Function)
+Use reflection to extract all route paramters from the handler and the path, ensuring that 
+all path paramters have a matching function paramter to handle them.
+"""
+function parse_func_params(route::String, func::Function)::NamedTuple
 
     """
     Parsing Rules:
@@ -560,7 +565,7 @@ function parse_func_params(route::String, func::Function)
         end
     end
 
-    # make sure all the path params are present in the route
+    # make sure all the path params are present in the route handler function arguments
     if !isempty(route_params)
         missing_params = [
             route_param
@@ -586,9 +591,12 @@ end
     register(ctx::ServerContext, httpmethod::String, route::String, func::Function)
 
 Register a request handler function with a path to the ROUTER
+# Arguments
+ - `route` May be either a path or a function if registering a router 
+ - `func` The handler for this path / route
 """
 function register(ctx::ServerContext, httpmethod::String, route::Union{String,Function}, func::Function)
-    # Parse & validate path parameters
+    # Parse & validate path parameters, will ensure that `route` is now a simple path (in case it was a router)
     route = parse_route(httpmethod, route)
     func_details = parse_func_params(route, func)
 
@@ -706,6 +714,12 @@ function create_param_parser(ctx::ServerContext, func_details)
     end
 end
 
+"""
+    registerhandler(ctx::ServerContext, router::Router, httpmethod::String, route::String, func::Function, func_details::NamedTuple)
+
+Register this function as the handler for this path with the HTTP library.
+Discovers function and path parameters and registers extractors for each.
+"""
 function registerhandler(ctx::ServerContext, router::Router, httpmethod::String, route::String, func::Function, func_details::NamedTuple)
 
     # Get information about the function's arguments
@@ -718,13 +732,11 @@ function registerhandler(ctx::ServerContext, router::Router, httpmethod::String,
     has_ctx_kwarg = :context in Base.kwarg_decl(method)
 
     has_path_params = !isempty(info.args)
-
-    # Generate the function handler based on the input types
+    
+    # Extract the first argument of this handler i.e. `HTTP.Request`) 
     arg_type = first_arg_type(method, httpmethod)
+    # Obtain a function capable of calling our handler function with the required arguments
     func_handle = select_handler(arg_type, has_ctx_kwarg, has_req_kwarg, has_path_params, ctx; no_args=no_args)
-
-    # Generate the parameter parsing strategy for each endpoint
-    parse_params = create_param_parser(ctx, func_details)
 
     # Generate the parameter parsing strategy for each endpoint
     parse_params = create_param_parser(ctx, func_details)

@@ -313,6 +313,9 @@ end
 
 """
 Used to extract the function signature from regular Julia functions.
+
+# Returns 
+ - `NamedTuple` with keys: `name`, `args`, `kwargs`, `sig`, `sig_map`
 """
 function splitdef(f::Function; start=1)
     method_defs = methods(f)

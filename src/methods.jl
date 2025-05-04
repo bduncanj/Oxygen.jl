@@ -142,7 +142,11 @@ function adjustparams(path, func)
 end
 
 ### Core Routing Functions ###
+"""
+    route(methods::Vector{String}, path::Union{String,Function}, func::Function)
 
+Register each of the passed `methods` with Oxygen's default context
+"""
 function route(methods::Vector{String}, path::Union{String,Function}, func::Function)
     for method in methods
         Oxygen.Core.register(CONTEXT[], method, path, func)
