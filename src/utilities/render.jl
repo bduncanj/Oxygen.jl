@@ -20,20 +20,10 @@ const CONTENT_TYPES :: Dict{ResponseTypes.ResponseType, String} = Dict(
     ResponseTypes.Binary => "application/octet-stream"
 )
 
-function ResponseWrapper(type,content,status, headers)
+ResponseWrapper(type,content,status, headers)
+begin
     response = HTTP.Response(status, headers)
-    inferred_type = typeof(content)
-
-    if type == ResponseTypes.Json 
-        # No conversion is done on the content since it's already in binary format.
-        if inferred_type <: Vector{UInt8}
-            response.body = content
-        else
-            response.body = JSON3.write(content)
-        end
-    else
-        response.body = content
-    end
+    response.body = content
     HTTP.setheader(response, "Content-Type" => CONTENT_TYPES[type])
     HTTP.setheader(response, "Content-Length" => string(sizeof(response.body)))
     return ResponseWrapper{typeof(content)}(response)
@@ -63,7 +53,7 @@ end
 A convenience function to return a String that should be interpreted as JSON
 """
 function json(content::Any; status = 200, headers = []) :: ResponseWrapper
-    return ResponseWrapper(ResponseTypes.Json, content,status, headers)
+    return ResponseWrapper(ResponseTypes.Json, JSON3.write(content),status, headers)
 end
 
 """
