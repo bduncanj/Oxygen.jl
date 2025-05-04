@@ -2,7 +2,7 @@ module ProtoBufExt
 
 import HTTP
 import Oxygen: ProtoBuffer, protobuf
-import Oxygen.Types: Param, LazyRequest
+import Oxygen.Types: Param, LazyRequest, ResponseWrapper
 import Oxygen.Extractors: Extractor, extract, try_validate, safe_extract
 import ProtoBuf: encode, decode, ProtoDecoder, ProtoEncoder
 
@@ -59,7 +59,8 @@ end
 """
     protobuf(content::T; status = 200, headers = []) :: HTTP.Response where {T}
 
-Encode a protobuf message into the body of an HTTP.Response
+Encode a protobuf message into the body of a ResponseWrapper
+(used to allow type inference of the returned objects when building the OpenAPI schema)
 
 # Arguments
 - `content`: The protobuf message to encode.
@@ -69,7 +70,7 @@ Encode a protobuf message into the body of an HTTP.Response
 # Returns
 - An HTTP response object with the encoded protobuf message in its body.
 """
-function protobuf(content::T; status = 200, headers = []) :: HTTP.Response where {T}
+function protobuf(content::T; status = 200, headers = []) :: ResponseWrapper{T} where {T}
     io = IOBuffer()
     encode(ProtoEncoder(io), content)
     body = take!(io)
@@ -77,7 +78,7 @@ function protobuf(content::T; status = 200, headers = []) :: HTTP.Response where
     response = HTTP.Response(status, headers, body = body)
     HTTP.setheader(response, "Content-Type" => "application/octet-stream")
     HTTP.setheader(response, "Content-Length" => string(sizeof(body)))
-    return response
+    return ResponseWrapper{T}(response)
 end
 
 """

@@ -4,6 +4,7 @@ using Test
 using HTTP
 using ProtoBuf
 using Oxygen: protobuf
+using Oxygen.Types: ResponseWrapper 
 
 include("messages/people_pb.jl");
 using .people_pb: People, Person
@@ -45,7 +46,8 @@ end
 @testset "Protobuf encoder test" begin
 
     message = MyMessage(-1, ["a", "b"])
-    response = protobuf(message)
+    wrapper = protobuf(message)
+    response = wrapper.response
 
     @test response isa HTTP.Response
     @test response.status == 200
@@ -64,7 +66,8 @@ end
         Person("Charlie", 40)
     ])
 
-    response = protobuf(message)
+    wrapper = protobuf(message)
+    response=wrapper.response
 
     @test response isa HTTP.Response
     @test response.status == 200
