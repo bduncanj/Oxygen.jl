@@ -89,9 +89,11 @@ end
 
 
 """
-    select_handler(::Type{T})
+    select_handler(::Type{T}, has_ctx_kwarg::Bool, has_req_kwarg::Bool, has_path_params::Bool, ctx::ServerContext; no_args=false)
 
-Create a route handle for base case where user defined handler expects `HTTP.Request` objects.
+Create a the base route handler for those handler functions which don't take a stream or WebSocket, these 
+will usually accept HTTP.Request as the first argument.
+
 # Arguments
  - `has_ctx_kwarg`: Route handler expects named `context` argument
  - `has_req_kwarg`: Route handler expects named `request` argument
