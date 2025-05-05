@@ -386,7 +386,13 @@ and bypassing any globally defined middleware
 """
 function internalrequest(ctx::ServerContext, req::HTTP.Request; middleware::Vector=[], metrics::Bool=false, serialize::Bool=true, catch_errors=true)::HTTP.Response
     req.context[:ip] = "INTERNAL" # label internal requests
-    return req |> setupmiddleware(ctx; middleware, metrics, serialize, catch_errors)
+    res = req |> setupmiddleware(ctx; middleware, metrics, serialize, catch_errors)
+    # When running inside test suite this can be a `ResponseWrapper` instead of expected `HTTP.Response`
+    if res isa ResponseWrapper
+        return res.response
+    else
+        return res
+    end
 end
 
 
