@@ -19,14 +19,18 @@ function redirect(path::String; code = 307) :: HTTP.Response
     return HTTP.Response(code, ["Location" => path])
 end
 
-function handle_error(::ValidationError)
-    return json(("message" => "400: Bad Request"), status = 400)    
+function handle_error(error::ValidationError)::HTTP.Response
+    return json(("message" => sprint(showerror, error)), status = 400).response 
 end
 
-function handle_error(::Any)
-    return json(("message" => "500: Internal Server Error"), status = 500)    
+function handle_error(error::Any)::HTTP.Response
+    return json(("message" => sprint(showerror, error)), status = 500).response    
 end
+"""
+    handlerequest(getresponse::Function, catch_errors::Bool; show_errors::Bool = true)
 
+Call this request handler, optionally trapping exceptions.
+"""
 function handlerequest(getresponse::Function, catch_errors::Bool; show_errors::Bool = true)
     if !catch_errors
         return getresponse()
