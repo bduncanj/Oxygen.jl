@@ -174,6 +174,13 @@ function format_response!(req::HTTP.Request, content::Union{Number, Bool, Char, 
 end
 
 function format_response!(req::HTTP.Request, content::Any)
+   # Workaround: when using `instance()` to create a new Oxygen instance, multiple dispatch 
+   # will no longer match against the `TypedResponse.Wrapper` (as Oxygen has been imported into another module)
+   if hasfield(typeof(content), :response) && (getfield(content, :response) isa HTTP.Response)
+        req.response = getfield(content, :response)
+        return
+   end
+    
     # Convert anthything else to a JSON string
     body = JSON3.write(content)
     HTTP.setheader(req.response, "Content-Type" => "application/json; charset=utf-8")
