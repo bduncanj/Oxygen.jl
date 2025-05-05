@@ -4,7 +4,7 @@ using Test
 using HTTP
 using ProtoBuf
 using Oxygen: protobuf
-using Oxygen.Types: ResponseWrapper 
+using Oxygen.Util: ResponseWrapper 
 
 include("messages/people_pb.jl");
 using .people_pb: People, Person

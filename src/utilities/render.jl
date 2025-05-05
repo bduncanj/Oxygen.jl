@@ -2,9 +2,14 @@ using HTTP
 using JSON3
 using MIMEs
 
-using ..Types: ResponseWrapper
+export html, text, json, xml, js, css, binary, file, ResponseWrapper
 
-export html, text, json, xml, js, css, binary, file
+"""
+Wraps a HTTP.Response with the return type to allow generation of OpenAPI returned schema
+"""
+struct ResponseWrapper{T}
+    response::HTTP.Messages.Response
+end
 
 @enum ResponseType Html Text Json Xml Js Css Binary
 
