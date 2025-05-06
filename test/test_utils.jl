@@ -1,11 +1,7 @@
 module TestUtils
 using Test
 
-export has_property
-export values_present
-export value_absent
-export value_count
-export json_response_contains
+export has_property, values_present, value_absent, value_count, json_response_contains, schema_response_contains
 
 """
     values_present(dict, key, values)
@@ -67,6 +63,30 @@ function json_response_contains(path_object::Dict, response_vals)
     for (key,value) in response_vals
         if(test_response[key] != value)
             throw(AssertionError("Expected $key to be $value (actually $test_response[$key])"))
+        end
+    end
+    return true
+end
+
+"""
+    schema_response_contains(schema::Dict, url::String, method::String,mime_type::String, response::Dict)
+
+Test the `200` response for the specified path and `mime_type` (i.e. `application/json`) contains all of the referenced
+dictionary entries (response may contain additional entries)
+
+# Example
+```
+ctx = CONTEXT[]
+struct MyStruct name::string end
+@get "/data" -> json(MyStruct("Some Person"))
+@test schema_response_contains(ctx.docs.schema, "/data", "get", "application/json", Dict("name" => "Some Person"))
+```
+"""
+function schema_response_contains(schema::Dict, url::String, method::String,mime_type::String, response::Dict)
+    test_response = schema["paths"][url][lowercase(method)]["responses"]["200"]["content"][mime_type]["schema"]
+    for (key,value) in response
+        if(test_response[key] != value)
+            throw(AssertionError("Expected `:$key` to be `$value` (actually $test_response[$key])"))
         end
     end
     return true
