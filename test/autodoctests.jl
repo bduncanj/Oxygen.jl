@@ -121,11 +121,11 @@ end
     @test album["properties"]["releaseyear"]["type"] == "integer"
 
     ### Test return type generation
-    @test json_response_contains(paths["/album"], "post", Dict("\$ref" => "#/components/schemas/Album"))
-    @test json_response_contains(paths["/releaseyear"], "get", Dict("type" => "integer"))
-    @test json_response_contains(paths["/artist"], "get", Dict("type" => "string"))
+    @test json_response_contains(paths["/album"]["post"], Dict("\$ref" => "#/components/schemas/Album"))
+    @test json_response_contains(paths["/releaseyear"]["get"], Dict("type" => "integer"))
+    @test json_response_contains(paths["/artist"]["get"], Dict("type" => "string"))
     # Dictionary should serialize to `object`
-    @test json_response_contains(paths["/dict"], "get", Dict("type" => "object"))
+    @test json_response_contains(paths["/dict"]["get"], Dict("type" => "object"))
 
     # ensure the generated Car schema aligns
     car = schemas["Car"]

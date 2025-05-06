@@ -57,10 +57,13 @@ end
     json_response_contains(path_object, method, response_vals)
 
 Test that the 200 response of type `application/json` schema contains all the properties in `response_vals`
-It may contain additional properties  
+It may contain additional properties.  
+# Arguments
+- `path_object` - Portion of OpenAPI schema describing this path (i.e. `schema["paths"]["/pets"]["get"]`)
+- `response_vals` - Dictionary of keys and values which must exist in response
 """
-function json_response_contains(path_object, method, response_vals)
-    test_response = path_object[lowercase(method)]["responses"]["200"]["content"]["application/json"]["schema"]
+function json_response_contains(path_object::Dict, response_vals)
+    test_response = path_object["responses"]["200"]["content"]["application/json"]["schema"]
     for (key,value) in response_vals
         if(test_response[key] != value)
             throw(AssertionError("Expected $key to be $value (actually $test_response[$key])"))
