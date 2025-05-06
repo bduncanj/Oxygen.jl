@@ -42,7 +42,9 @@ end
 @post "/album" function (req, album::Json{Album})
     return album.payload;
 end
-
+# Register the same parameter a second time
+# Tests bug fix in which primitive vectors (i.e. of required fields) were duplicated
+# when merged with `merge_schema`
 @post "/album2" function (req, album::Json{Album})
     return album.payload;
 end
@@ -50,6 +52,10 @@ end
 @get "/releaseyear" () -> 2010
 @get "/artist" () -> "Some Artist"
 @get "/dict" () -> Dict("foo"=>"bar")
+
+@get "/json_int" () -> json(200)
+@get "/json_vector_int" () -> json([1,2,3])
+@get "/json_struct" () -> json(Party())
 
 @post "/party-invite" function(req, party::Json{PartyInvite})
     return text("added $(length(party.payload.party.guests)) guests")
@@ -126,6 +132,10 @@ end
     @test json_response_contains(paths["/artist"]["get"], Dict("type" => "string"))
     # Dictionary should serialize to `object`
     @test json_response_contains(paths["/dict"]["get"], Dict("type" => "object"))
+
+    @test json_response_contains(paths["/json_int"]["get"], Dict("type" => "integer"))
+    @test json_response_contains(paths["/json_struct"]["get"], Dict("\$ref" => "#/components/schemas/Party"))
+    @test json_response_contains(paths["/json_vector_int"]["get"], Dict("type" => "array", "items" => Dict("type" => "integer", "format" => "int64")))
 
     # ensure the generated Car schema aligns
     car = schemas["Car"]
