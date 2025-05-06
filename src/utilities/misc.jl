@@ -175,7 +175,7 @@ end
 
 function format_response!(req::HTTP.Request, content::Any)
    # Workaround: when using `instance()` to create a new Oxygen instance, multiple dispatch 
-   # will no longer match against the `TypedResponse.Wrapper` (as Oxygen has been imported into another module)
+   # will no longer match against the `ResponseWrapper` (as Oxygen has been imported into another module)
    if hasfield(typeof(content), :response) && (getfield(content, :response) isa HTTP.Response)
         req.response = getfield(content, :response)
         return
