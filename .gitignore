@@ -5,3 +5,4 @@ test/Manifest.toml
 demo/Manifest.toml
 # Code coverage results
 *.cov
+coverage-html-*
